@@ -472,7 +472,7 @@ MonoBehaviour:
   dashSpeed: 20
   dashTime: 15
   dashCooldown: 60
-  smoothTurnTime: 0.25
+  smoothTurnTime: 0.125
 --- !u!1 &8120022628003733493
 GameObject:
   m_ObjectHideFlags: 0

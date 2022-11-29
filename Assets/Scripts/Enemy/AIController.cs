@@ -236,18 +236,4 @@ public class AIController : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    // void OnTriggerEnter(Collider other){
-    //     if(other.gameObject.name == "Bullet(Clone)")
-    //     {
-    //         if(health > 1)
-    //         {
-    //             health--;
-    //         }
-    //         else
-    //         {
-    //             Destroy(gameObject);
-    //         }
-    //     }
-    // }
 }
