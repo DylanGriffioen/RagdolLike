@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MeleeAttack : MonoBehaviour
+public class EnemyMeleeAttack : MonoBehaviour
 {
     public float lifeTime = 5;
     public int damage = 1;
@@ -24,13 +24,9 @@ public class MeleeAttack : MonoBehaviour
     Function to keep track of what needs to happen when the melee attack collides with objects
     */
     void OnTriggerEnter(Collider other){
-        if(other.gameObject.name == "Enemy(Clone)"){
+        if(other.gameObject.name == "Player"){
             Destroy(gameObject);
-            other.GetComponent<AIController>().TakeDamage(damage);
-        } else if(other.gameObject.name == "Boss(Clone)")
-        {
-            Destroy(gameObject);
-            other.GetComponent<AIController>().TakeDamage(damage);
+            other.GetComponent<PlayerController>().TakeDamage(damage);
         }
     }
 }

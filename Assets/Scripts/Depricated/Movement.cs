@@ -62,13 +62,10 @@ public class Movement : MonoBehaviour
         moveDirection = inputDirection * variableSpeed; //inputDirection is the normalized direction, moveDirection includes moveSpeed
         rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.y); //Assign velocity and keep current y-component of velocity
 
-        //Smooth rotation
-        if (inputDirection.magnitude > 0.125f)
-        {
-            targetAngle = (Vector2.SignedAngle(inputDirection, Vector2.up) + 360f) % 360f;
-            smoothAngle = Mathf.SmoothDampAngle(transform.rotation.eulerAngles.y, targetAngle, ref smoothTurnVelocity, smoothTurnTime);
-            transform.rotation = Quaternion.Euler(new Vector3(0, smoothAngle, 0));
-        }
+
+        targetAngle = (Vector2.SignedAngle(inputDirection, Vector2.up) + 360f) % 360f;
+        smoothAngle = Mathf.SmoothDampAngle(transform.rotation.eulerAngles.y, targetAngle, ref smoothTurnVelocity, smoothTurnTime);
+        transform.rotation = Quaternion.Euler(new Vector3(0, smoothAngle, 0));
     }
 
     //This function keeps check of what direction the player wants to move in

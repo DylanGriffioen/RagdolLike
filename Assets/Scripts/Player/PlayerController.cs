@@ -5,30 +5,30 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    //All the public variables needed for moving, dashing and smooth turning
-    public float moveSpeed = 7;
-    public float dashSpeed = 20;
-    public float dashDuration = 15;
-    public float dashCooldown = 60;
-    public float smoothTurnTime = 0.125f;
-    public float rangedAttackCooldown = 0.5f;
-    public float meleeAttackCooldown = 0.5f;
-    //Ammo is used to keep track of how many bullets you have left
-    public float ammo = 10;
+    public float moveSpeed = 7;                     //  How fast the player walks around
+    public float dashSpeed = 20;                    //  How fast the player walks during his dash
+    public float dashDuration = 15;                 //  How long the dash lasts
+    public float dashCooldown = 60;                 //  How much time has to pass between uses of the dash
+    public float smoothTurnTime = 0.125f;           //  How fast the player character turns around
+    public float rangedAttackCooldown = 20;         //  How much time has to pass between ranged attacks
+    public float meleeAttackCooldown = 20;          //  How much time has to pass between melee attacks
+    public float rangedAnimationTime = 10;          //  How long the player stands still during the ranged attack animation
+    public float meleeAnimationTime = 10;           //  How long the player stands still during the melee attack animation
+    public float ammo = 10;                         //  How many times the player can use the ranged attack
+    public float health = 10;                       //  How much health the player has
 
-    //Private floats timers to keep track of varius cooldowns and the dash duration
-    private float dashTimer = 0;
+    //  Timers that keep track of the various durations and cooldowns the player has
+    private float dashTimer = 0; 
     private float dashCooldownTimer = 0;
     private float rangedAttackCooldownTimer = 0;
     private float meleeAttackCooldownTimer = 0;
+    private float rangedAnimationTimer = 0;
+    private float meleeAnimationTimer = 0;
     
+    public GameObject meleePrefab;                   //  The players melee attack
+    public GameObject rangedPrefab;                  //  The players ranged attack
     /**
-    Attacking works by spawning in either the meleePrefab for the melee attack
-    or the bulletPrefab for the ranged attack
-    */
-    public GameObject bulletPrefab;
-    public GameObject meleePrefab;
-    /**
+
     This is used to keep track of an empty object that is attached to the front of the player character
     and is used as a spawnpoint for the melee and bullet prefab
     */
@@ -59,12 +59,19 @@ public class PlayerController : MonoBehaviour
     */
     private void Update()
     {
-        Directional();
+        if(meleeAnimationTimer <= 0 && rangedAnimationTimer <= 0)
+        {
+            Directional();
+        }
+        else
+        {
+            rb.velocity = new Vector3(0,0,0);
+        }
         updateDashTimers();
         UpdateAttackTimers();
     }
 
-    // Update the timers needed for the dash
+    //  Update the timers needed for the dash
     private void updateDashTimers()
     {
         if(dashTimer > 0){
@@ -80,7 +87,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Update the timers needed for the ranged and melee attacks
+    //  Update the timers needed for the ranged and melee attacks
     private void UpdateAttackTimers()
     {
         if(meleeAttackCooldownTimer > 0)
@@ -90,6 +97,14 @@ public class PlayerController : MonoBehaviour
         if(rangedAttackCooldownTimer > 0)
         {
             rangedAttackCooldownTimer--;
+        }
+        if(rangedAnimationTimer > 0)
+        {
+            rangedAnimationTimer--;
+        }
+        if(meleeAnimationTimer > 0)
+        {
+            meleeAnimationTimer--;
         }
     }
 
@@ -131,21 +146,22 @@ public class PlayerController : MonoBehaviour
     }
 
     /**
-    If ammo is above 0 spawn in a bulletPrefab at the spawnpoint position and give it the player characters rotation
+    If ammo is above 0 spawn in a rangedPrefab at the spawnpoint position and give it the player characters rotation
     It also sets the rangeAttackCooldownTimer so that you cannot spam the attack too much
     */
     private void OnRangedAttack()
     {
         if(ammo > 0 && rangedAttackCooldownTimer <= 0)
         {
-            Instantiate(bulletPrefab, spawnpoint.position, transform.rotation);
+            Instantiate(rangedPrefab, spawnpoint.position, transform.rotation);
             ammo--;
             rangedAttackCooldownTimer = rangedAttackCooldown;
+            rangedAnimationTimer = rangedAnimationTime;
         }
     }
 
     /**
-    Spawn in the meleePrefab at the spawnpoint posistion and give it the player charaters rotation
+    Spawn in the meleePrefab at the spawnpoint position and give it the player charaters rotation
     It also sets the meleeAttackCooldownTimer so that you cannot spam the attack too much
     */
     private void OnMeleeAttack()
@@ -154,7 +170,15 @@ public class PlayerController : MonoBehaviour
         {
             Instantiate(meleePrefab, spawnpoint.position, transform.rotation);
             meleeAttackCooldownTimer = meleeAttackCooldown;
+            meleeAnimationTimer = meleeAnimationTime;
         }
     }
 
+    public void TakeDamage(int damage){
+        health = (health-damage);
+        if(health <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
 }

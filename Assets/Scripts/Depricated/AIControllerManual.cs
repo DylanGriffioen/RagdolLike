@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-public class AIController : MonoBehaviour
+public class AIControllerManual : MonoBehaviour
 {
     public NavMeshAgent navMeshAgent;               //  Nav mesh agent component
     public float startWaitTime = 4;                 //  Wait time of every action
@@ -20,9 +20,10 @@ public class AIController : MonoBehaviour
 
     public float health = 10; 
  
+    public bool generateWaypoints = false;          //  Set this to true if you want the enemy to generate it's own waypoints instead of having to set them manually
     public float generateWaypointsRange = 9;        //  How far apart you want the waypoints to be generated
     public float generateWaypointsAmount = 3;       //  How many waypoints you want the enemy to generate
-    public Vector3[] waypoints;                     //  All the generated waypoints where the enemy patros
+    public Transform[] waypoints;           //  All the manually added waypoints where the enemy patrols
     int m_CurrentWaypointIndex;                     //  Current waypoint where the enemy is going to
  
     Vector3 playerLastPosition = Vector3.zero;      //  Last position of the player when was near the enemy
@@ -40,6 +41,9 @@ public class AIController : MonoBehaviour
 
     public GameObject attackPrefab;                 //  The attack prefab that get's spawned in when attacking
     public Transform spawnpoint;                    //  The position where the attack prefab is being spawned on
+ 
+    private Transform tempTransform;
+    private Transform tempTransform2;
 
     void Start()
     {
@@ -51,19 +55,21 @@ public class AIController : MonoBehaviour
         m_WaitTime = startWaitTime;                 //  Set the wait time variable that will change
         m_TimeToRotate = timeToRotate;
         attackDelayTimer = attackDelayTime;
-
-        //  Generate the random waypoints that the enemy patrols
-        for (int i = 0; i < generateWaypointsAmount; i++)
+ 
+        if(generateWaypoints)
         {
-            waypoints[i] = GenerateWaypointPosition();
+            for (int i = 0; i < generateWaypointsAmount; i++)
+            {
+                tempTransform.position = GenerateWaypointPosition();
+                waypoints[i] = tempTransform;
+            }
         }
-
         m_CurrentWaypointIndex = 0;                 //  Set the initial waypoint
         navMeshAgent = GetComponent<NavMeshAgent>();
  
         navMeshAgent.isStopped = false;
         navMeshAgent.speed = speedWalk;             //  Set the navemesh speed with the normal speed of the enemy
-        navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);    //  Set the destination to the first waypoint
+        navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);    //  Set the destination to the first waypoint
     }
  
     private void Update()
@@ -115,7 +121,7 @@ public class AIController : MonoBehaviour
                 Move(speedWalk);
                 m_TimeToRotate = timeToRotate;
                 m_WaitTime = startWaitTime;
-                navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);
+                navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
             }
             else if (Vector3.Distance(transform.position, GameObject.FindGameObjectWithTag("Player").transform.position) >= 2.5f)
             {
@@ -152,7 +158,7 @@ public class AIController : MonoBehaviour
         {
             m_PlayerNear = false;           //  The player is no near when the enemy is platroling
             playerLastPosition = Vector3.zero;
-            navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);    //  Set the enemy destination to the next waypoint
+            navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);    //  Set the enemy destination to the next waypoint
             if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
             {
                 //  If the enemy arrives to the waypoint position then wait for a moment and go to the next
@@ -174,7 +180,7 @@ public class AIController : MonoBehaviour
     public void NextPoint()
     {
         m_CurrentWaypointIndex = (m_CurrentWaypointIndex + 1) % waypoints.Length;
-        navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);
+        navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
     }
  
     void Stop()
@@ -201,8 +207,8 @@ public class AIController : MonoBehaviour
 
     private Vector3 GenerateWaypointPosition()
     {
-        float spawnPosX = Random.Range(transform.position.x-generateWaypointsRange, transform.position.x+generateWaypointsRange);
-        float spawnPosZ = Random.Range(transform.position.z-generateWaypointsRange, transform.position.z+generateWaypointsRange);
+        float spawnPosX = Random.Range(-generateWaypointsRange, generateWaypointsRange);
+        float spawnPosZ = Random.Range(-generateWaypointsRange, generateWaypointsRange);
         Vector3 randomPos = new Vector3(spawnPosX, 0, spawnPosZ);
         return randomPos;
     }
@@ -216,7 +222,7 @@ public class AIController : MonoBehaviour
             {
                 m_PlayerNear = false;
                 Move(speedWalk);
-                navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);
+                navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
                 m_WaitTime = startWaitTime;
                 m_TimeToRotate = timeToRotate;
             }

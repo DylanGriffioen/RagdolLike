@@ -27,7 +27,11 @@ public class Bullet : MonoBehaviour
     Function to keep track of what needs to happen when the bullet collides with objects
     */
     void OnTriggerEnter(Collider other){
-        if(other.gameObject.name == "Capsule"){
+        if(other.gameObject.name == "Enemy(Clone)"){
+            Destroy(gameObject);
+            other.GetComponent<AIController>().TakeDamage(damage);
+        } else if(other.gameObject.name == "Boss(Clone)")
+        {
             Destroy(gameObject);
             other.GetComponent<AIController>().TakeDamage(damage);
         }
