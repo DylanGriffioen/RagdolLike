@@ -9,13 +9,18 @@ public class PlayerController : MonoBehaviour
     public float dashSpeed = 20;                    //  How fast the player walks during his dash
     public float dashDuration = 15;                 //  How long the dash lasts
     public float dashCooldown = 60;                 //  How much time has to pass between uses of the dash
-    public float smoothTurnTime = 0.125f;           //  How fast the player character turns around
+    public float smoothTurnTime = 0.07f;            //  How fast the player character turns around
     public float rangedAttackCooldown = 20;         //  How much time has to pass between ranged attacks
     public float meleeAttackCooldown = 20;          //  How much time has to pass between melee attacks
     public float rangedAnimationTime = 10;          //  How long the player stands still during the ranged attack animation
     public float meleeAnimationTime = 10;           //  How long the player stands still during the melee attack animation
-    public float ammo = 10;                         //  How many times the player can use the ranged attack
-    public float health = 10;                       //  How much health the player has
+    public int currentBullets = 10;                 //  How many times the player can still use the ranged attack
+    public int maximumBullets = 10;                 //  How much bullets the player is allowed to carry with him (important for refilling bullets)
+    public int currentHealth = 10;                  //  How much health the player has
+    public int maximumHealth = 10;                  //  How much health the player is allowed to have (important for healing)
+
+    public int meleeAttackStartingDamage = 1;       //  How much damage the melee attack deals without powerups boosting it
+    public int rangedAttackStartingDamage = 1;      //  How much damage the ranged attack deals without powerups boosting it
 
     //  Timers that keep track of the various durations and cooldowns the player has
     private float dashTimer = 0; 
@@ -51,6 +56,8 @@ public class PlayerController : MonoBehaviour
         input = new InputActions();
         rb = GetComponent<Rigidbody>();
         variableSpeed = moveSpeed;
+        meleePrefab.GetComponent<MeleeAttack>().SetDamage(meleeAttackStartingDamage);
+        rangedPrefab.GetComponent<Bullet>().SetDamage(rangedAttackStartingDamage);
     }
 
     /**
@@ -146,15 +153,15 @@ public class PlayerController : MonoBehaviour
     }
 
     /**
-    If ammo is above 0 spawn in a rangedPrefab at the spawnpoint position and give it the player characters rotation
+    If bullets is above 0 spawn in a rangedPrefab at the spawnpoint position and give it the player characters rotation
     It also sets the rangeAttackCooldownTimer so that you cannot spam the attack too much
     */
     private void OnRangedAttack()
     {
-        if(ammo > 0 && rangedAttackCooldownTimer <= 0)
+        if(currentBullets > 0 && rangedAttackCooldownTimer <= 0)
         {
             Instantiate(rangedPrefab, spawnpoint.position, transform.rotation);
-            ammo--;
+            currentBullets--;
             rangedAttackCooldownTimer = rangedAttackCooldown;
             rangedAnimationTimer = rangedAnimationTime;
         }
@@ -174,11 +181,79 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damage){
-        health = (health-damage);
-        if(health <= 0)
+    /**
+    Refills the players bullets
+    Give this function a value below 0 if you want the bullets to be fully refilled (for game balance purposes)
+    */ 
+    public void RefillBullets(int bullets)
+    {
+        if(bullets < 0)
+        {
+            currentBullets = maximumBullets;
+        }
+        else if((currentBullets + bullets) < maximumBullets) // Cannot let the currentBullets exceed the maximumBullets value
+        {
+            currentBullets = currentBullets + bullets;
+        }
+        else
+        {
+            currentBullets = maximumBullets;
+        }
+    }
+
+    /**
+    Allows the player to take a variable amount of damage and keeps track of the players health
+    */
+    public void TakeDamage(int damage)
+    {
+        currentHealth = (currentHealth-damage);
+        if(currentHealth <= 0)
         {
             Destroy(gameObject);
         }
+    }
+
+    /**
+    Heals the player
+    Give this function a value below 0 if you want the player to be fully healed (for game balance purposes)
+    */ 
+    public void HealPlayer(int healing)
+    {
+        if(healing < 0)
+        {
+            currentHealth = maximumHealth;
+        }
+        else if((currentHealth + healing) < maximumHealth) // Cannot let the currentHealth exceed the maximumHealth value
+        {
+            currentHealth += healing;
+        }
+        else
+        {
+            currentHealth = maximumHealth;
+        }
+    }
+
+    /**
+    Increases the players maximum health
+    */
+    public void IncreaseMaxHealth(int healthIncrease)
+    {
+        maximumHealth += healthIncrease;
+    }
+
+    /**
+    Increases the players maximum health
+    */
+    public void IncreaseMeleeDamage(int damageIncrease)
+    {
+        meleePrefab.GetComponent<MeleeAttack>().IncreaseDamage(damageIncrease);
+    }
+
+    /**
+    Increases the players maximum health
+    */
+    public void IncreaseRangedDamage(int damageIncrease)
+    {
+        rangedPrefab.GetComponent<Bullet>().IncreaseDamage(damageIncrease);
     }
 }

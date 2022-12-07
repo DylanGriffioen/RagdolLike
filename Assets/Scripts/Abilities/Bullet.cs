@@ -7,13 +7,15 @@ public class Bullet : MonoBehaviour
     //public floats that keep track of the bullets stats
     public float speed = 10;
     public float lifeTime = 180;
-    public int damage = 1;
+    public int damage;
 
     // Start is called before the first frame update
-    // Keeps track of the lifetime of the attack object and destroys it when the time hits 0
     void Start(){}
 
-    // Update is called once per frame
+    /**
+    Update is called once per frame
+    Keeps track of the lifetime of the attack object and destroys it when the time hits 0
+    */
     void Update()
     {
         transform.Translate(Vector3.forward * Time.deltaTime * speed);
@@ -24,14 +26,26 @@ public class Bullet : MonoBehaviour
     }
 
     /**
+    Set the damage of the bullet
+    */
+    public  void SetDamage(int newdamage)
+    {
+        damage = newdamage;
+    }
+
+    /**
+    Increase the damage of the bullet
+    */
+    public void IncreaseDamage(int damageIncrease)
+    {
+        damage += damageIncrease;
+    }
+
+    /**
     Function to keep track of what needs to happen when the bullet collides with objects
     */
     void OnTriggerEnter(Collider other){
-        if(other.gameObject.name == "Enemy(Clone)"){
-            Destroy(gameObject);
-            other.GetComponent<AIController>().TakeDamage(damage);
-        } else if(other.gameObject.name == "Boss(Clone)")
-        {
+        if(other.gameObject.tag == "Enemy"){
             Destroy(gameObject);
             other.GetComponent<AIController>().TakeDamage(damage);
         }

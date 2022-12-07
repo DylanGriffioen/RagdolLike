@@ -6,7 +6,7 @@ public class SpawnManager : MonoBehaviour
 {
     public GameObject enemyPrefab;
     public GameObject bossPrefab;
-    public GameObject powerupPrefab;
+    public GameObject[] powerupPrefabs;
     public int enemyCount;
     public int waveNumber = 1;
     public int spawnRange = 18;
@@ -17,6 +17,7 @@ public class SpawnManager : MonoBehaviour
     public int maxEnemies = 5;
     public int powerupInterval = 2;
     private int nextPowerup;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,6 +25,37 @@ public class SpawnManager : MonoBehaviour
         nextBosWave = bosWaveInterval;
         finalBossWave = nextBosWave * bossAmount;
         nextPowerup = powerupInterval;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        enemyCount = FindObjectsOfType<AIController>().Length;
+        if(enemyCount == 0)
+        {
+            waveNumber++;
+            if(waveNumber == nextPowerup)
+            {
+                SpawnPowerup();
+                nextPowerup += powerupInterval;
+            }
+            if(waveNumber == nextBosWave)
+            {
+                SpawnBoss();
+                nextBosWave += bosWaveInterval;
+            }
+            else
+            {
+                if(waveNumber < maxEnemies){
+                    SpawnEnemyWave(waveNumber);
+                }
+                else
+                {
+                    SpawnEnemyWave(maxEnemies);
+                }
+            }
+        }
+        
     }
 
     void SpawnEnemyWave(int enemyAmount)
@@ -41,7 +73,8 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnPowerup()
     {
-        Instantiate(powerupPrefab, GenerateSpawnPosition(), powerupPrefab.transform.rotation);
+        int index = Random.Range(0, powerupPrefabs.Length);
+        Instantiate(powerupPrefabs[index], GenerateSpawnPosition(), powerupPrefabs[index].transform.rotation);
     }
 
     private Vector3 GenerateSpawnPosition()
@@ -50,35 +83,5 @@ public class SpawnManager : MonoBehaviour
         float spawnPosZ = Random.Range(-spawnRange, spawnRange);
         Vector3 randomPos = new Vector3(spawnPosX, 0, spawnPosZ);
         return randomPos;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        enemyCount = FindObjectsOfType<AIController>().Length;
-        if(enemyCount == 0)
-        {   
-            if(waveNumber == nextPowerup)
-            {
-                SpawnPowerup();
-            }
-            if(waveNumber == nextBosWave)
-            {
-                SpawnBoss();
-                nextBosWave += bosWaveInterval;
-                waveNumber++;
-            }
-            else
-            {
-                waveNumber++;
-                if(waveNumber < maxEnemies){
-                    SpawnEnemyWave(waveNumber);
-                }
-                else
-                {
-                    SpawnEnemyWave(maxEnemies);
-                }
-            }
-        }
     }
 }

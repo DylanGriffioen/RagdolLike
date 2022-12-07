@@ -10,10 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 924932638981798978}
   - component: {fileID: 4372753092140088110}
-  - component: {fileID: -5570471591053746086}
-  - component: {fileID: -8137025702068357054}
+  - component: {fileID: -7845323801956170608}
+  - component: {fileID: 2377120823745967380}
   m_Layer: 0
-  m_Name: EnemyMeleeAttack
+  m_Name: BossMeleeAttack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifeTime: 5
-  damage: 1
---- !u!65 &-5570471591053746086
+  damage: 2
+--- !u!65 &-7845323801956170608
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -59,9 +59,9 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 3, y: 3, z: 3}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &-8137025702068357054
+--- !u!54 &2377120823745967380
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
