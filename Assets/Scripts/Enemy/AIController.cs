@@ -124,7 +124,7 @@ public class AIController : MonoBehaviour
                 navMeshAgent.SetDestination(transform.position);
                 m_WaitTime -= Time.deltaTime;
             }
-            else if (Vector3.Distance(transform.position, GameObject.FindGameObjectWithTag("Player").transform.position) <= navMeshAgent.stoppingDistance)
+            else if (Vector3.Distance(transform.position, GameObject.FindGameObjectWithTag("Player").transform.position) <= 1.5f)
             {
                 CaughtPlayer();
             }
