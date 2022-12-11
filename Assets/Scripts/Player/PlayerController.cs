@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     public float rangedAttackAnimationTime = 60;          //  How long the player stands still during the ranged attack animation
     public float rangedAttackDelayTime = 20;
     public float meleeAttackAnimationTime = 60;           //  How long the player stands still during the melee attack animation
-    public float meleeAttackDelayTIme = 20;
+    public float meleeAttackDelayTime = 20;
     public int currentBullets = 10;                 //  How many times the player can still use the ranged attack
     public int maximumBullets = 10;                 //  How much bullets the player is allowed to carry with him (important for refilling bullets)
     public int currentHealth = 10;                  //  How much health the player has
@@ -30,7 +30,14 @@ public class PlayerController : MonoBehaviour
     private float meleeAttackAnimationTimer = 0;
     private float meleeAttackDelayTimer = 0;
 
+    private bool attackRanged = false;
+    private bool attackMelee = false;
+
     private bool attacking = false;
+    private bool triggerMeleeAttackSet = false;
+    private bool triggerRangedAttackSet = false;
+    private bool hasAttackedRanged = false;
+    private bool hasAttackedMelee = false;
     Transform model;
     Animator anim;
 
@@ -63,9 +70,9 @@ public class PlayerController : MonoBehaviour
         meleePrefab.GetComponent<MeleeAttack>().SetDamage(meleeAttackStartingDamage);
         rangedPrefab.GetComponent<Bullet>().SetDamage(rangedAttackStartingDamage);
         rangedAttackAnimationTimer = rangedAttackAnimationTime;
-        rangedAttackDelayTimer = rangedAttackDelayTimer;
+        rangedAttackDelayTimer = rangedAttackDelayTime;
         meleeAttackAnimationTimer = meleeAttackAnimationTime;
-        meleeAttackDelayTimer = meleeAttackDelayTIme;
+        meleeAttackDelayTimer = meleeAttackDelayTime;
 
         model = transform.GetChild(0);
         anim = model.GetComponent<Animator>();
@@ -77,16 +84,23 @@ public class PlayerController : MonoBehaviour
     */
     private void Update()
     {
-        if(meleeAttackAnimationTimer <= 0 && rangedAttackAnimationTimer <= 0)
+        if(!attackRanged && !attackMelee)
         {
             Directional();
         }
         else
         {
+            if(attackMelee)
+            {
+                AttackMelee();
+            }
+            else
+            {
+                AttackRanged();
+            }
             rb.velocity = new Vector3(0,0,0);
         }
         updateDashTimers();
-        UpdateAttackTimers();
     }
 
     //  Update the timers needed for the dash
@@ -102,19 +116,6 @@ public class PlayerController : MonoBehaviour
         if(dashCooldownTimer > 0)
         {
             dashCooldownTimer--;
-        }
-    }
-
-    //  Update the timers needed for the ranged and melee attacks
-    private void UpdateAttackTimers()
-    {
-        if(rangedAttackAnimationTimer > 0)
-        {
-            rangedAttackAnimationTimer--;
-        }
-        if(meleeAttackAnimationTimer > 0)
-        {
-            meleeAttackAnimationTimer--;
         }
     }
 
@@ -176,9 +177,40 @@ public class PlayerController : MonoBehaviour
     {
         if(currentBullets > 0)
         {
+            attackRanged = true;
+        }
+    }
+
+    private void AttackRanged()
+    {
+        if(!triggerRangedAttackSet)
+        {
+            anim.SetBool("Idle", false);
+            anim.SetBool("Run", false);
+            anim.SetTrigger("Ability");
+            triggerRangedAttackSet = true;
+        }
+        if(rangedAttackDelayTimer > 0 || hasAttackedRanged)
+        {
+            rangedAttackDelayTimer--;
+        }
+        else
+        {
             Instantiate(rangedPrefab, spawnpoint.position, transform.rotation);
             currentBullets--;
+            hasAttackedRanged = true;
+        }
+        if(rangedAttackAnimationTimer > 0)
+        {
+            rangedAttackAnimationTimer--;
+        }
+        else
+        {
+            rangedAttackDelayTimer = rangedAttackDelayTime;
             rangedAttackAnimationTimer = rangedAttackAnimationTime;
+            hasAttackedRanged = false;
+            triggerRangedAttackSet = false;
+            attackRanged = false;
         }
     }
 
@@ -188,8 +220,39 @@ public class PlayerController : MonoBehaviour
     */
     private void OnMeleeAttack()
     {
-        Instantiate(meleePrefab, spawnpoint.position, transform.rotation);
-        meleeAttackAnimationTimer = meleeAttackAnimationTime;
+        attackMelee = true;
+    }
+
+    private void AttackMelee()
+    {
+        if(!triggerMeleeAttackSet)
+        {
+            anim.SetBool("Idle", false);
+            anim.SetBool("Run", false);
+            anim.SetTrigger("Attack");
+            triggerMeleeAttackSet = true;
+        }
+        if(MeleeAttackDelayTimer > 0 || hasAttackedMelee)
+        {
+            MeleeAttackDelayTimer--;
+        }
+        else
+        {
+            Instantiate(MeleePrefab, spawnpoint.position, transform.rotation);
+            hasAttackedMelee = true;
+        }
+        if(MeleeAttackAnimationTimer > 0)
+        {
+            MeleeAttackAnimationTimer--;
+        }
+        else
+        {
+            MeleeAttackDelayTimer = MeleeAttackDelayTime;
+            MeleeAttackAnimationTimer = MeleeAttackAnimationTime;
+            hasAttackedMelee = false;
+            triggerMeleeAttackSet = false;
+            attackMelee = false;
+        }
     }
 
     /**
