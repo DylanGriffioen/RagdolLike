@@ -12,8 +12,8 @@ public class PlayerController : MonoBehaviour
     public float smoothTurnTime = 0.07f;            //  How fast the player character turns around
     public float rangedAttackAnimationTime = 60;          //  How long the player stands still during the ranged attack animation
     public float rangedAttackDelayTime = 20;
-    public float meleeAttackAnimationTime = 60;           //  How long the player stands still during the melee attack animation
-    public float meleeAttackDelayTime = 20;
+    public float MeleeAttackAnimationDuration = 60;           //  How long the player stands still during the melee attack animation
+    public float meleeAttackDelay = 20;
     public int currentBullets = 10;                 //  How many times the player can still use the ranged attack
     public int maximumBullets = 10;                 //  How much bullets the player is allowed to carry with him (important for refilling bullets)
     public int currentHealth = 10;                  //  How much health the player has
@@ -27,11 +27,13 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownTimer = 0;
     private float rangedAttackAnimationTimer = 0;
     private float rangedAttackDelayTimer = 0;
-    private float meleeAttackAnimationTimer = 0;
-    private float meleeAttackDelayTimer = 0;
+    private float meleeAttackAnimationDurationTimer = 0;
+    private float meleeAttackDelayT = 0;
 
     private bool attackRanged = false;
     private bool attackMelee = false;
+
+    private bool dashing = false;
 
     private bool attacking = false;
     private bool triggerMeleeAttackSet = false;
@@ -41,7 +43,7 @@ public class PlayerController : MonoBehaviour
     Transform model;
     Animator anim;
 
-    public GameObject meleePrefab;                   //  The players melee attack
+    public GameObject meleeAttackPrefab;                   //  The players melee attack
     public GameObject rangedPrefab;                  //  The players ranged attack
     /**
 
@@ -67,12 +69,12 @@ public class PlayerController : MonoBehaviour
         input = new InputActions();
         rb = GetComponent<Rigidbody>();
         variableSpeed = moveSpeed;
-        meleePrefab.GetComponent<MeleeAttack>().SetDamage(meleeAttackStartingDamage);
+        meleeAttackPrefab.GetComponent<MeleeAttack>().SetDamage(meleeAttackStartingDamage);
         rangedPrefab.GetComponent<Bullet>().SetDamage(rangedAttackStartingDamage);
         rangedAttackAnimationTimer = rangedAttackAnimationTime;
         rangedAttackDelayTimer = rangedAttackDelayTime;
-        meleeAttackAnimationTimer = meleeAttackAnimationTime;
-        meleeAttackDelayTimer = meleeAttackDelayTime;
+        meleeAttackAnimationDurationTimer = MeleeAttackAnimationDuration;
+        meleeAttackDelayT = meleeAttackDelay;
 
         model = transform.GetChild(0);
         anim = model.GetComponent<Animator>();
@@ -110,6 +112,7 @@ public class PlayerController : MonoBehaviour
             dashTimer--;
             if(dashTimer <= 0)
             {
+                dashing = false;
                 variableSpeed = moveSpeed;
             }
         }
@@ -124,17 +127,19 @@ public class PlayerController : MonoBehaviour
     */
     private void Directional()
     {
-        if(!attacking)
+        if(!attacking && !dashing)
         {
             if(rb.velocity == new Vector3(0,0,0))
             {
                 anim.SetBool("Run", false);
                 anim.SetBool("Idle", true);
+                anim.SetBool("Dash", false);
             }
             else
             {
                 anim.SetBool("Idle", false);
                 anim.SetBool("Run", true);
+                anim.SetBool("Dash", false);
             }
         }
         moveDirection = inputDirection * variableSpeed; //inputDirection is the normalized direction, moveDirection includes moveSpeed
@@ -163,6 +168,10 @@ public class PlayerController : MonoBehaviour
     {
         if(dashCooldownTimer <= 0)
         {
+            anim.SetBool("Idle", false);
+            anim.SetBool("Run", false);
+            anim.SetBool("Dash", true);
+            dashing = true;
             variableSpeed = dashSpeed;
             dashTimer = dashDuration;
             dashCooldownTimer = dashCooldown;
@@ -187,6 +196,7 @@ public class PlayerController : MonoBehaviour
         {
             anim.SetBool("Idle", false);
             anim.SetBool("Run", false);
+            anim.SetBool("Dash", false);
             anim.SetTrigger("Ability");
             triggerRangedAttackSet = true;
         }
@@ -215,7 +225,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /**
-    Spawn in the meleePrefab at the spawnpoint position and give it the player charaters rotation
+    Spawn in the meleeAttackPrefab at the spawnpoint position and give it the player charaters rotation
     It also sets the meleeAttackCooldownTimer so that you cannot spam the attack too much
     */
     private void OnMeleeAttack()
@@ -229,26 +239,27 @@ public class PlayerController : MonoBehaviour
         {
             anim.SetBool("Idle", false);
             anim.SetBool("Run", false);
+            anim.SetBool("Dash", false);
             anim.SetTrigger("Attack");
             triggerMeleeAttackSet = true;
         }
-        if(MeleeAttackDelayTimer > 0 || hasAttackedMelee)
+        if(meleeAttackDelayT > 0 || hasAttackedMelee)
         {
-            MeleeAttackDelayTimer--;
+            meleeAttackDelayT--;
         }
         else
         {
-            Instantiate(MeleePrefab, spawnpoint.position, transform.rotation);
+            Instantiate(meleeAttackPrefab, spawnpoint.position, transform.rotation);
             hasAttackedMelee = true;
         }
-        if(MeleeAttackAnimationTimer > 0)
+        if(meleeAttackAnimationDurationTimer > 0)
         {
-            MeleeAttackAnimationTimer--;
+            meleeAttackAnimationDurationTimer--;
         }
         else
         {
-            MeleeAttackDelayTimer = MeleeAttackDelayTime;
-            MeleeAttackAnimationTimer = MeleeAttackAnimationTime;
+            meleeAttackDelayT = meleeAttackDelay;
+            meleeAttackAnimationDurationTimer = MeleeAttackAnimationDuration;
             hasAttackedMelee = false;
             triggerMeleeAttackSet = false;
             attackMelee = false;
@@ -320,7 +331,7 @@ public class PlayerController : MonoBehaviour
     */
     public void IncreaseMeleeDamage(int damageIncrease)
     {
-        meleePrefab.GetComponent<MeleeAttack>().IncreaseDamage(damageIncrease);
+        meleeAttackPrefab.GetComponent<MeleeAttack>().IncreaseDamage(damageIncrease);
     }
 
     /**

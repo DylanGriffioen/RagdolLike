@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8818d3c9c48e57d40b47fca72a32d747, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifeTime: 20
+  lifeTime: 30
   damage: 1
 --- !u!65 &-5570471591053746086
 BoxCollider:
