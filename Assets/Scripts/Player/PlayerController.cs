@@ -10,10 +10,10 @@ public class PlayerController : MonoBehaviour
     public float dashDuration = 15;                 //  How long the dash lasts
     public float dashCooldown = 60;                 //  How much time has to pass between uses of the dash
     public float smoothTurnTime = 0.07f;            //  How fast the player character turns around
-    public float rangedAttackCooldown = 20;         //  How much time has to pass between ranged attacks
-    public float meleeAttackCooldown = 20;          //  How much time has to pass between melee attacks
-    public float rangedAnimationTime = 10;          //  How long the player stands still during the ranged attack animation
-    public float meleeAnimationTime = 10;           //  How long the player stands still during the melee attack animation
+    public float rangedAttackAnimationTime = 60;          //  How long the player stands still during the ranged attack animation
+    public float rangedAttackDelayTime = 20;
+    public float meleeAttackAnimationTime = 60;           //  How long the player stands still during the melee attack animation
+    public float meleeAttackDelayTIme = 20;
     public int currentBullets = 10;                 //  How many times the player can still use the ranged attack
     public int maximumBullets = 10;                 //  How much bullets the player is allowed to carry with him (important for refilling bullets)
     public int currentHealth = 10;                  //  How much health the player has
@@ -25,11 +25,15 @@ public class PlayerController : MonoBehaviour
     //  Timers that keep track of the various durations and cooldowns the player has
     private float dashTimer = 0; 
     private float dashCooldownTimer = 0;
-    private float rangedAttackCooldownTimer = 0;
-    private float meleeAttackCooldownTimer = 0;
-    private float rangedAnimationTimer = 0;
-    private float meleeAnimationTimer = 0;
-    
+    private float rangedAttackAnimationTimer = 0;
+    private float rangedAttackDelayTimer = 0;
+    private float meleeAttackAnimationTimer = 0;
+    private float meleeAttackDelayTimer = 0;
+
+    private bool attacking = false;
+    Transform model;
+    Animator anim;
+
     public GameObject meleePrefab;                   //  The players melee attack
     public GameObject rangedPrefab;                  //  The players ranged attack
     /**
@@ -58,6 +62,13 @@ public class PlayerController : MonoBehaviour
         variableSpeed = moveSpeed;
         meleePrefab.GetComponent<MeleeAttack>().SetDamage(meleeAttackStartingDamage);
         rangedPrefab.GetComponent<Bullet>().SetDamage(rangedAttackStartingDamage);
+        rangedAttackAnimationTimer = rangedAttackAnimationTime;
+        rangedAttackDelayTimer = rangedAttackDelayTimer;
+        meleeAttackAnimationTimer = meleeAttackAnimationTime;
+        meleeAttackDelayTimer = meleeAttackDelayTIme;
+
+        model = transform.GetChild(0);
+        anim = model.GetComponent<Animator>();
     }
 
     /**
@@ -66,7 +77,7 @@ public class PlayerController : MonoBehaviour
     */
     private void Update()
     {
-        if(meleeAnimationTimer <= 0 && rangedAnimationTimer <= 0)
+        if(meleeAttackAnimationTimer <= 0 && rangedAttackAnimationTimer <= 0)
         {
             Directional();
         }
@@ -97,21 +108,13 @@ public class PlayerController : MonoBehaviour
     //  Update the timers needed for the ranged and melee attacks
     private void UpdateAttackTimers()
     {
-        if(meleeAttackCooldownTimer > 0)
+        if(rangedAttackAnimationTimer > 0)
         {
-            meleeAttackCooldownTimer--;
+            rangedAttackAnimationTimer--;
         }
-        if(rangedAttackCooldownTimer > 0)
+        if(meleeAttackAnimationTimer > 0)
         {
-            rangedAttackCooldownTimer--;
-        }
-        if(rangedAnimationTimer > 0)
-        {
-            rangedAnimationTimer--;
-        }
-        if(meleeAnimationTimer > 0)
-        {
-            meleeAnimationTimer--;
+            meleeAttackAnimationTimer--;
         }
     }
 
@@ -120,6 +123,19 @@ public class PlayerController : MonoBehaviour
     */
     private void Directional()
     {
+        if(!attacking)
+        {
+            if(rb.velocity == new Vector3(0,0,0))
+            {
+                anim.SetBool("Run", false);
+                anim.SetBool("Idle", true);
+            }
+            else
+            {
+                anim.SetBool("Idle", false);
+                anim.SetBool("Run", true);
+            }
+        }
         moveDirection = inputDirection * variableSpeed; //inputDirection is the normalized direction, moveDirection includes moveSpeed
         rb.velocity = new Vector3(moveDirection.x, rb.velocity.y, moveDirection.y); //Assign velocity and keep current y-component of velocity
 
@@ -158,12 +174,11 @@ public class PlayerController : MonoBehaviour
     */
     private void OnRangedAttack()
     {
-        if(currentBullets > 0 && rangedAttackCooldownTimer <= 0)
+        if(currentBullets > 0)
         {
             Instantiate(rangedPrefab, spawnpoint.position, transform.rotation);
             currentBullets--;
-            rangedAttackCooldownTimer = rangedAttackCooldown;
-            rangedAnimationTimer = rangedAnimationTime;
+            rangedAttackAnimationTimer = rangedAttackAnimationTime;
         }
     }
 
@@ -173,12 +188,8 @@ public class PlayerController : MonoBehaviour
     */
     private void OnMeleeAttack()
     {
-        if(meleeAttackCooldownTimer <= 0)
-        {
-            Instantiate(meleePrefab, spawnpoint.position, transform.rotation);
-            meleeAttackCooldownTimer = meleeAttackCooldown;
-            meleeAnimationTimer = meleeAnimationTime;
-        }
+        Instantiate(meleePrefab, spawnpoint.position, transform.rotation);
+        meleeAttackAnimationTimer = meleeAttackAnimationTime;
     }
 
     /**

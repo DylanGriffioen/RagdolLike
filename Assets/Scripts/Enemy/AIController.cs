@@ -18,6 +18,9 @@ public class AIController : MonoBehaviour
     public int edgeIterations = 4;                  //  Number of iterations to get a better performance of the mesh filter when the raycast hit an obstacule
     public float edgeDistance = 0.5f;               //  Max distance to calcule the a minumun and a maximum raycast when hits something
 
+    Transform model;
+    Animator anim;
+
     public float health = 10; 
  
     public float generateWaypointsRange = 9;        //  How far apart you want the waypoints to be generated
@@ -35,8 +38,12 @@ public class AIController : MonoBehaviour
     bool m_IsPatrol;                                //  If the enemy is patrol, state of patroling
     bool m_CaughtPlayer;                            //  if the enemy has caught the player
 
-    public float attackDelayTime = 30;              //  Variable of the Delay time between attacs
+    public float attackDelayTime = 20;              //  Variable of the Delay time between attacs
     public float attackDelayTimer;                  //  Variable used as a timer for the Delay between attacks
+    public float attackAnimationTime = 60;          //  Variable used to keep track of how long the attack animation should play
+    public float attackAnimationTimer;              //  Variable used as a timer for the attack animation time
+    private bool hasAttacked = false;
+    private bool triggerAttackSet = false;
 
     public GameObject attackPrefab;                 //  The attack prefab that get's spawned in when attacking
     public Transform spawnpoint;                    //  The position where the attack prefab is being spawned on
@@ -51,6 +58,9 @@ public class AIController : MonoBehaviour
         m_WaitTime = startWaitTime;                 //  Set the wait time variable that will change
         m_TimeToRotate = timeToRotate;
         attackDelayTimer = attackDelayTime;
+        attackAnimationTimer = attackAnimationTime;
+        model = transform.GetChild(0);
+        anim = model.GetComponent<Animator>();
 
         //  Generate the random waypoints that the enemy patrols
         for (int i = 0; i < generateWaypointsAmount; i++)
@@ -89,19 +99,41 @@ public class AIController : MonoBehaviour
  
         if (!m_CaughtPlayer)
         {
+            anim.SetBool("Walk", false);
+            anim.SetBool("Idle", false);
+            anim.SetBool("Run", true);
             Move(speedRun);
             navMeshAgent.SetDestination(m_PlayerPosition);          //  set the destination of the enemy to the player location
         }
         else
         {
-            if(attackDelayTimer > 0)
+            if(!triggerAttackSet)
+            {
+                anim.SetBool("Walk", false);
+                anim.SetBool("Idle", false);
+                anim.SetBool("Run", false);
+                anim.SetTrigger("Attack");
+                triggerAttackSet = true;
+            }
+            if(attackDelayTimer > 0 || hasAttacked)
             {
                 attackDelayTimer--;
             }
             else
             {
                 Instantiate(attackPrefab, spawnpoint.position, transform.rotation);
+                hasAttacked = true;
+            }
+            if(attackAnimationTimer > 0)
+            {
+                attackAnimationTimer--;
+            }
+            else
+            {
                 attackDelayTimer = attackDelayTime;
+                attackAnimationTimer = attackAnimationTime;
+                hasAttacked = false;
+                triggerAttackSet = false;
                 FinishedAttack();
             }
         }
@@ -116,10 +148,19 @@ public class AIController : MonoBehaviour
                 m_TimeToRotate = timeToRotate;
                 m_WaitTime = startWaitTime;
                 navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);
+                anim.SetBool("Walk", true);
+                anim.SetBool("Idle", false);
+                anim.SetBool("Run", false);
             }
             else if (Vector3.Distance(transform.position, GameObject.FindGameObjectWithTag("Player").transform.position) >= 2.5f)
             {
                 //  Wait if the current position is not the player position
+                if(!m_CaughtPlayer)
+                {
+                    anim.SetBool("Walk", false);
+                    anim.SetBool("Idle", true);
+                    anim.SetBool("Run", false);
+                }
                 Stop();
                 navMeshAgent.SetDestination(transform.position);
                 m_WaitTime -= Time.deltaTime;
@@ -150,6 +191,9 @@ public class AIController : MonoBehaviour
         }
         else
         {
+            anim.SetBool("Walk", true);
+            anim.SetBool("Idle", false);
+            anim.SetBool("Run", false);
             m_PlayerNear = false;           //  The player is no near when the enemy is platroling
             playerLastPosition = Vector3.zero;
             navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex]);    //  Set the enemy destination to the next waypoint
@@ -164,6 +208,9 @@ public class AIController : MonoBehaviour
                 }
                 else
                 {
+                    anim.SetBool("Walk", false);
+                    anim.SetBool("Idle", true);
+                    anim.SetBool("Run", false);
                     Stop();
                     m_WaitTime -= Time.deltaTime;
                 }
