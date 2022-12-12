@@ -572,9 +572,9 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
-  attackDelayTime: 20
+  attackDelayTime: 10
   attackDelayTimer: 0
-  attackAnimationTime: 60
+  attackAnimationTime: 25
   attackAnimationTimer: 0
   attackPrefab: {fileID: 6631684409564938256, guid: 4be210de05c910d49be206f7f785c048, type: 3}
   spawnpoint: {fileID: 7668025900536428661}
