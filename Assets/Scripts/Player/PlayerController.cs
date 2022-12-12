@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -18,9 +19,14 @@ public class PlayerController : MonoBehaviour
     public int maximumBullets = 10;                 //  How much bullets the player is allowed to carry with him (important for refilling bullets)
     public int currentHealth = 10;                  //  How much health the player has
     public int maximumHealth = 10;                  //  How much health the player is allowed to have (important for healing)
+    public int lives = 3;
 
     public int meleeAttackStartingDamage = 1;       //  How much damage the melee attack deals without powerups boosting it
     public int rangedAttackStartingDamage = 1;      //  How much damage the ranged attack deals without powerups boosting it
+
+    public float dashCD = 1.2f;
+    public float dashCDCurrent = 0.0f;
+    public bool dashReady;
 
     //  Timers that keep track of the various durations and cooldowns the player has
     private float dashTimer = 0; 
@@ -61,6 +67,12 @@ public class PlayerController : MonoBehaviour
     //This float is used as the actual speed float and can be changed to make the player dash
     private float variableSpeed;
 
+    public GameObject GameOverUI;
+    public GameObject MainGUI;
+    public Text livesText;
+    public Text healthText;
+    public Text magicText;
+
     /**
         Gets the inputactions and rigidbody while setting the characters speed to moveSpeed so he can walk around at normal speed
     */
@@ -78,6 +90,11 @@ public class PlayerController : MonoBehaviour
 
         model = transform.GetChild(0);
         anim = model.GetComponent<Animator>();
+        GameOverUI.SetActive(false);
+        MainGUI.SetActive(true);
+        magicText.text = "Magic: " + currentBullets.ToString();
+        livesText.text = "Lives: " + lives.ToString();
+        healthText.text = "Health: " + currentHealth.ToString();
     }
 
     /**
@@ -108,17 +125,14 @@ public class PlayerController : MonoBehaviour
     //  Update the timers needed for the dash
     private void updateDashTimers()
     {
-        if(dashTimer > 0){
-            dashTimer--;
-            if(dashTimer <= 0)
-            {
-                dashing = false;
-                variableSpeed = moveSpeed;
-            }
-        }
-        if(dashCooldownTimer > 0)
+        if(dashCDCurrent >= dashCD)
         {
-            dashCooldownTimer--;
+            dashReady = true;
+        }
+        else
+        {
+            dashReady = false;
+            dashCDCurrent += Time.deltaTime;
         }
     }
 
@@ -166,8 +180,9 @@ public class PlayerController : MonoBehaviour
     */
     private void OnDash(InputValue value)
     {
-        if(dashCooldownTimer <= 0)
+        if(dashReady)
         {
+            dashCDCurrent = 0.0f;
             anim.SetBool("Idle", false);
             anim.SetBool("Run", false);
             anim.SetBool("Dash", true);
@@ -208,6 +223,7 @@ public class PlayerController : MonoBehaviour
         {
             Instantiate(rangedPrefab, spawnpoint.position, transform.rotation);
             currentBullets--;
+            magicText.text = "Magic: " + currentBullets.ToString();
             hasAttackedRanged = true;
         }
         if(rangedAttackAnimationTimer > 0)
@@ -284,6 +300,7 @@ public class PlayerController : MonoBehaviour
         {
             currentBullets = maximumBullets;
         }
+        magicText.text = "Magic: " + currentBullets.ToString();
     }
 
     /**
@@ -292,9 +309,22 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         currentHealth = (currentHealth-damage);
+        healthText.text = "Health: " + currentHealth.ToString();
         if(currentHealth <= 0)
         {
-            Destroy(gameObject);
+            if(lives > 0)
+            {
+                lives--;
+                currentHealth = maximumHealth;
+                livesText.text = "Lives: " + lives.ToString();
+                healthText.text = "Health: " + currentHealth.ToString();
+            }
+            else
+            {
+                GameOverUI.SetActive(true);
+                MainGUI.SetActive(false);
+                Time.timeScale = 0f;
+            }
         }
     }
 
@@ -316,6 +346,7 @@ public class PlayerController : MonoBehaviour
         {
             currentHealth = maximumHealth;
         }
+        healthText.text = "Health: " + currentHealth.ToString();
     }
 
     /**

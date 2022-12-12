@@ -6,11 +6,14 @@ public class Bullet : MonoBehaviour
 {
     //public floats that keep track of the bullets stats
     public float speed = 10;
-    public float lifeTime = 180;
+    public float lifeTime = 1;
     public int damage;
 
     // Start is called before the first frame update
-    void Start(){}
+    void Start()
+    {
+        Destroy(gameObject, lifeTime);
+    }
 
     /**
     Update is called once per frame
@@ -19,10 +22,6 @@ public class Bullet : MonoBehaviour
     void Update()
     {
         transform.Translate(Vector3.forward * Time.deltaTime * speed);
-        if(lifeTime <= 0){
-            Destroy(gameObject);
-        }
-        lifeTime--;
     }
 
     /**

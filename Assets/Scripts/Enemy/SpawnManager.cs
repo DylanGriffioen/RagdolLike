@@ -21,6 +21,9 @@ public class SpawnManager : MonoBehaviour
     public int resourceInteval = 2;
     private int nextResource;
 
+    public GameObject GameVictoryUI;
+    public GameObject MainGUI;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,6 +41,12 @@ public class SpawnManager : MonoBehaviour
         if(enemyCount == 0)
         {
             waveNumber++;
+            if(waveNumber == ((bossAmount * bosWaveInterval) + 1))
+            {
+                GameVictoryUI.SetActive(true);
+                MainGUI.SetActive(false);
+                Time.timeScale = 0f;
+            }
             if(waveNumber == nextResource)
             {
                 SpawnResource();
