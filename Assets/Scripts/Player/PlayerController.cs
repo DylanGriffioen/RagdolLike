@@ -141,7 +141,7 @@ public class PlayerController : MonoBehaviour
         if(!attackRanged && !attackMelee && !dashing)
         {
             // Setting the correct idle and walk animations if not attacking or dashing
-            if(rb.velocity.x <= 1 && rb.velocity.y <= 1)
+            if(rb.velocity == new Vector3(0,0,0))
             {
                 anim.SetBool("Run", false);
                 anim.SetBool("Idle", true);
