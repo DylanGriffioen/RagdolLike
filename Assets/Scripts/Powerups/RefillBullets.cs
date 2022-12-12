@@ -18,7 +18,7 @@ public class RefillBullets : MonoBehaviour
     void OnTriggerEnter(Collider other){
         if(other.gameObject.tag == "Player"){
             Destroy(gameObject);
-            other.GetComponent<PlayerController>().RefillBullets(refilAmount);
+            other.GetComponent<PlayerController>().RefillMagic(refilAmount);
         }
     }
 }

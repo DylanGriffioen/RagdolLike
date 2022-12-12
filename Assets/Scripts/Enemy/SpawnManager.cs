@@ -35,6 +35,11 @@ public class SpawnManager : MonoBehaviour
     }
 
     // Update is called once per frame
+    /**
+    Checks if there are enemies left
+    if not it increases the wave number and spawns in the correct enemies
+    Or ends the game if the wave number is equal to the wave number of the final boss
+    */
     void Update()
     {
         enemyCount = FindObjectsOfType<AIController>().Length;

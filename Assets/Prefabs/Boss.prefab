@@ -572,11 +572,12 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
-  attackDelayTime: 200
-  attackDelayTimer: 0
-  attackAnimationTime: 400
-  attackAnimationTimer: 0
-  attackPrefab: {fileID: 6631684409564938256, guid: 4be210de05c910d49be206f7f785c048, type: 3}
+  meleeAnimationD: 0.8
+  meleeAnimationDC: 0
+  meleeAttackD: 0.4
+  meleeAttackDC: 0
+  hasAttackedMelee: 0
+  meleePrefab: {fileID: 6631684409564938256, guid: 4be210de05c910d49be206f7f785c048, type: 3}
   spawnpoint: {fileID: 7668025900536428661}
 --- !u!1 &1690452429990113260
 GameObject:

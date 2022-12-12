@@ -14,7 +14,6 @@ public class EnemyMeleeAttack : MonoBehaviour
     }
 
     // Update is called once per frame
-    // Keeps track of the lifetime of the attack object and destroys it when the time hits 0
     void Update(){}
 
     /**
